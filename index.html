@@ -45,6 +45,9 @@
         <aside class="sidebar">
             <section class="sidebar-section user-info">
                 <h3 class="username" id="current-username">你好, User</h3>
+                <div id="notifications-section">
+                    <button id="enable-notifications-button" class="glass-button notification-btn">开启通知</button>
+                </div>
                 <button id="logout-button" class="glass-button logout-btn">退出登录</button>
             </section>
             <section class="sidebar-section">
@@ -59,7 +62,7 @@
         <main id="main-chat" class="main-chat">
              <div id="chat-placeholder" class="chat-placeholder"><p>选择一个好友<br>开始聊天吧！</p></div>
              <div id="chat-window-content" class="chat-window-content">
-                <header id="chat-header" class="chat-header"><button id="back-to-sidebar-button"><</button><h3>Friend Name</h3></header>
+                <header id="chat-header" class="chat-header"><button id="back-to-sidebar-button"><</button><h3 id="chat-friend-name">Friend Name</h3></header>
                 <div id="chat-messages" class="chat-messages"></div>
                 <div class="chat-input-area">
                     <form id="message-form"><input type="text" id="message-input" placeholder="输入消息..." autocomplete="off"><button type="submit" class="glass-button">发送</button></form>
@@ -71,43 +74,7 @@
     <!-- 主脚本文件，作为模块加载 -->
     <script type="module" src="app.js"></script>
 </body>
-</html>                initializeChat();
-            } else {
-                showView('login');
-            }
-        });
-    </script>
-</body>
-</html>            const installButton = document.getElementById('install-pwa-button');
-
-            window.addEventListener('beforeinstallprompt', (e) => {
-                // 阻止Chrome 67及更早版本自动显示安装提示
-                e.preventDefault();
-                // 存储事件，以便稍后触发
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaoChat</title>
-
-    <!-- PWA 核心标签 (保持不变) -->
-    <meta name="theme-color" content="#392d5a"/>
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png">
-
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-    
-    <style>
-        /* CSS样式代码与上一版完全相同，这里省略以保持简洁。*/
-        /* 请确保您使用的是上一版响应式设计的完整CSS。 */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-        :root {--primary-color: rgba(140, 69, 252, 0.7);--primary-hover: rgba(140, 69, 252, 0.9);--dark-glass: rgba(35, 35, 45, 0.65);--light-glass: rgba(255, 255, 255, 0.1);--border-color: rgba(255, 255, 255, 0.125);--text-color: #f0f0f0;--placeholder-color: rgba(255, 255, 255, 0.6);}
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {font-family: 'Poppins', sans-serif;height: 100vh;width: 100vw;overflow: hidden;color: var(--text-color);background: linear-gradient(145deg, #1c2039 0%, #392d5a 50%, #683a54 100%);background-attachment: fixed;display: flex;justify-content: center;align-items: center;}
-        .glass-container {background: var(--dark-glass);backdrop-filter: blur(12px) saturate(180%);-webkit-backdrop-filter: blur(12px) saturate(180%);border-radius: 20px;border: 1px solid var(--border-color);box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);padding: 30px;}
-        .auth-view {width: 380px;display: none;flex-direction: column;gap: 20px;}
+</html>        .auth-view {width: 380px;display: none;flex-direction: column;gap: 20px;}
         .auth-view h2 { text-align: center; font-weight: 300; letter-spacing: 2px; margin-bottom: 10px; }
         .input-group input {width: 100%;background: var(--light-glass);border: 1px solid var(--border-color);border-radius: 8px;padding: 12px;color: var(--text-color);font-size: 16px;outline: none;transition: all 0.2s;}
         .input-group input::placeholder { color: var(--placeholder-color); }
