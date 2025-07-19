@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MaoChat</title>
 
+    <!-- PWA 核心标签 (保持不变) -->
     <meta name="theme-color" content="#392d5a"/>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -13,7 +14,8 @@
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     
     <style>
-        /* CSS样式代码与上一版完全相同... */
+        /* CSS样式代码与上一版完全相同，这里省略以保持简洁。*/
+        /* 请确保您使用的是上一版响应式设计的完整CSS。 */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
         :root {--primary-color: rgba(140, 69, 252, 0.7);--primary-hover: rgba(140, 69, 252, 0.9);--dark-glass: rgba(35, 35, 45, 0.65);--light-glass: rgba(255, 255, 255, 0.1);--border-color: rgba(255, 255, 255, 0.125);--text-color: #f0f0f0;--placeholder-color: rgba(255, 255, 255, 0.6);}
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -58,99 +60,248 @@
         .chat-input-area form { display: flex; gap: 10px; }
         .chat-input-area input { flex-grow: 1; }
         .chat-placeholder { display: flex; justify-content: center; align-items: center; height: 100%; font-size: 1.5em; color: #666; text-align: center; }
-        
-        /* --- 新增：自定义安装按钮样式 --- */
-        #install-pwa-button {
-            display: none; /* 默认隐藏 */
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            padding: 12px 20px;
-            font-size: 16px;
-            font-weight: 600;
-            background: linear-gradient(45deg, #f957b4, #7349fb);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s ease-out;
-        }
-        #install-pwa-button:hover {
-            transform: scale(1.05);
-        }
-
-        @media (max-width: 768px) {
-            .auth-view { width: 90vw; }
-            #chat-view {position: relative;overflow: hidden;flex-direction: column;width: 100vw;height: 100vh;border-radius: 0;}
-            .sidebar, .main-chat {width: 100%;height: 100%;position: absolute;top: 0;left: 0;transition: transform 0.35s ease-in-out;border-radius: 0;border-right: none;}
-            .sidebar { transform: translateX(0); z-index: 10; }
-            .main-chat { transform: translateX(100%); z-index: 20; }
-            #chat-view.mobile-chat-active .sidebar { transform: translateX(-100%); }
-            #chat-view.mobile-chat-active .main-chat { transform: translateX(0); }
-            #back-to-sidebar-button { display: block; }
-            .chat-header h3 { margin: 0 auto; }
-            .message-bubble { max-width: 80%; }
-        }
+        @media (max-width: 768px) {.auth-view { width: 90vw; }#chat-view {position: relative;overflow: hidden;flex-direction: column;width: 100vw;height: 100vh;border-radius: 0;}.sidebar, .main-chat {width: 100%;height: 100%;position: absolute;top: 0;left: 0;transition: transform 0.35s ease-in-out;border-radius: 0;border-right: none;}.sidebar { transform: translateX(0); z-index: 10; }.main-chat { transform: translateX(100%); z-index: 20; }#chat-view.mobile-chat-active .sidebar { transform: translateX(-100%); }#chat-view.mobile-chat-active .main-chat { transform: translateX(0); }#back-to-sidebar-button { display: block; }.chat-header h3 { margin: 0 auto; }.message-bubble { max-width: 80%; }}
     </style>
 </head>
 <body>
-    <!-- HTML结构... -->
+    <!-- HTML结构与上一版完全相同 -->
     <div id="login-view" class="glass-container auth-view"><h2>登录 MaoChat</h2><div id="login-error" class="error-message"></div><form id="login-form"><div class="input-group"><input type="text" id="login-username" placeholder="用户名" required></div><div class="input-group"><input type="password" id="login-password" placeholder="密码" required></div><button type="submit" class="glass-button">登 录</button></form><a id="show-register" class="form-link">还没有账户？去注册</a></div><div id="register-view" class="glass-container auth-view"><h2>创建新账户</h2><div id="register-error" class="error-message"></div><form id="register-form"><div class="input-group"><input type="text" id="register-username" placeholder="用户名" required></div><div class="input-group"><input type="password" id="register-password" placeholder="密码 (至少6位)" required></div><button type="submit" class="glass-button">注 册</button></form><a id="show-login" class="form-link">已经有账户了？去登录</a></div><div id="chat-view" class="glass-container"><aside class="sidebar"><section class="sidebar-section user-info"><h3 class="username" id="current-username">你好, User</h3><button id="logout-button" class="glass-button" style="background: rgba(244, 67, 54, 0.6);">退出登录</button></section><section class="sidebar-section"><h4>添加好友</h4><form id="search-form" style="display: flex; gap: 5px;"><input type="text" id="search-input" placeholder="搜索用户名..." style="flex-grow:1;"><button type="submit" class="glass-button" style="padding: 10px 15px;">🔍</button></form><div id="search-results"></div></section><section class="sidebar-section"><h4>好友请求</h4><div id="friend-requests"></div></section><section class="sidebar-section friend-list"><h4>好友列表</h4><div id="friends-list-container"></div></section></aside><main id="main-chat" class="main-chat"><div id="chat-placeholder" class="chat-placeholder"><p>选择一个好友<br>开始聊天吧！</p></div><div id="chat-window-content" style="display: none; height: 100%; flex-direction: column;"><header id="chat-header" class="chat-header"><button id="back-to-sidebar-button"><</button><h3>Friend Name</h3></header><div id="chat-messages" class="chat-messages"></div><div class="chat-input-area"><form id="message-form"><input type="text" id="message-input" placeholder="输入消息..." autocomplete="off"><button type="submit" class="glass-button">发送</button></form></div></div></main></div>
-
-    <!-- 新增：自定义的安装按钮 -->
-    <button id="install-pwa-button">安装应用</button>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+
+            const API_BASE_URL = 'https://www.maochat.dpdns.org';
+            let state = { token: localStorage.getItem('token'), user: JSON.parse(localStorage.getItem('user')), socket: null, friends: [], onlineUsers: [], friendRequests: [], currentChat: null, messages: [] };
+            const views = { login: document.getElementById('login-view'), register: document.getElementById('register-view'), chat: document.getElementById('chat-view') };
+            const loginForm = document.getElementById('login-form'), registerForm = document.getElementById('register-form'), chatView = document.getElementById('chat-view');
+            const showView = (viewName) => { Object.values(views).forEach(v => v.style.display = 'none'); views[viewName].style.display = 'flex'; };
+            const api = axios.create({ baseURL: API_BASE_URL, headers: { 'Content-Type': 'application/json' } });
+            api.interceptors.request.use(config => { if (state.token) config.headers['Authorization'] = `Bearer ${state.token}`; return config; });
+
+            // --- 新增工具函数：转换VAPID公钥 ---
+            function urlBase64ToUint8Array(base64String) {
+                const padding = '='.repeat((4 - base64String.length % 4) % 4);
+                const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+                const rawData = window.atob(base64);
+                const outputArray = new Uint8Array(rawData.length);
+                for (let i = 0; i < rawData.length; ++i) {
+                    outputArray[i] = rawData.charCodeAt(i);
+                }
+                return outputArray;
+            }
+
+            // --- 新增：订阅推送通知的核心函数 ---
+            const subscribeToPushNotifications = async () => {
+                try {
+                    const registration = await navigator.serviceWorker.ready;
+                    let subscription = await registration.pushManager.getSubscription();
+                    
+                    if (subscription) {
+                        console.log('用户已经订阅。');
+                        return;
+                    }
+                    
+                    const response = await api.get('/api/users/vapid-public-key');
+                    const vapidPublicKey = response.data;
+                    
+                    if (!vapidPublicKey) {
+                        console.error('未能从服务器获取VAPID公钥。');
+                        return;
+                    }
+                    
+                    const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+                    
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: convertedVapidKey
+                    });
+                    
+                    await api.post('/api/users/save-subscription', subscription);
+                    console.log('推送通知订阅成功并已发送到后端。');
+
+                } catch (error) {
+                    console.error('订阅推送通知失败:', error);
+                }
+            };
             
-            // --- 新增：PWA安装提示逻辑 ---
-            let deferredPrompt;
-            const installButton = document.getElementById('install-pwa-button');
+            // --- 修改：初始化聊天函数 ---
+            const initializeChat = async () => {
+                showView('chat');
+                document.getElementById('current-username').textContent = `你好, ${state.user.username}`;
+                connectSocket();
+                await fetchData();
+
+                // 在初始化时，请求权限并订阅
+                if ('serviceWorker' in navigator && 'PushManager' in window) {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            console.log('通知权限已获取，开始订阅...');
+                            subscribeToPushNotifications();
+                        } else {
+                            console.log('用户拒绝了通知权限。');
+                        }
+                    });
+                }
+            };
+
+            // --- 其他JS函数 (无重大变化) ---
+            const renderFriendList = () => { /* ... 此处代码无变化 ... */ const container = document.getElementById('friends-list-container'); container.innerHTML = ''; state.friends.forEach(friend => { const isOnline = state.onlineUsers.includes(friend._id), isActive = state.currentChat?._id === friend._id; const item = document.createElement('div'); item.className = `friend-item ${isActive ? 'active' : ''}`; item.innerHTML = `<div class="friend-name"><span class="status-dot ${isOnline ? 'online' : ''}"></span><span>${friend.username}</span></div>`; item.onclick = () => selectChat(friend); container.appendChild(item); }); };
+            const renderFriendRequests = () => { /* ... 此处代码无变化 ... */ const container = document.getElementById('friend-requests'); container.innerHTML = ''; state.friendRequests.forEach(req => { const item = document.createElement('div'); item.className = 'request-item'; item.innerHTML = `<span>${req.username}</span><div class="action-buttons"><button class="accept" data-id="${req.userId}">✓</button><button class="reject" data-id="${req.userId}">×</button></div>`; container.appendChild(item); }); };
+            const renderSearchResults = (results) => { /* ... 此处代码无变化 ... */ const container = document.getElementById('search-results'); container.innerHTML = '<h4>搜索结果</h4>'; results.forEach(u => { const item = document.createElement('div'); item.className = 'search-item'; item.innerHTML = `<span>${u.username}</span><div class="action-buttons"><button class="add" data-id="${u._id}">+</button></div>`; container.appendChild(item); }); };
+            const renderMessages = () => { /* ... 此处代码无变化 ... */ const container = document.getElementById('chat-messages'); container.innerHTML = ''; state.messages.forEach(msg => { const isSent = msg.sender === state.user.id; const bubble = document.createElement('div'); bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`; bubble.textContent = msg.content; container.appendChild(bubble); if (isSent) { const statusDiv = document.createElement('div'); statusDiv.className = 'message-status'; statusDiv.textContent = msg.status || 'sent'; container.appendChild(statusDiv); } }); container.scrollTop = container.scrollHeight; };
+            const handleLogin = async (username, password) => { /* ... 此处代码无变化 ... */ try { const res = await api.post('/api/users/login', { username, password }); state.token = res.data.token; state.user = { id: res.data._id, username: res.data.username }; localStorage.setItem('token', state.token); localStorage.setItem('user', JSON.stringify(state.user)); await initializeChat(); } catch (err) { document.getElementById('login-error').textContent = '用户名或密码错误。'; } };
+            const handleRegister = async (username, password) => { /* ... 此处代码无变化 ... */ if (password.length < 6) { document.getElementById('register-error').textContent = '密码至少需要6位。'; return; } try { const res = await api.post('/api/users/register', { username, password }); state.token = res.data.token; state.user = { id: res.data._id, username: res.data.username }; localStorage.setItem('token', state.token); localStorage.setItem('user', JSON.stringify(state.user)); await initializeChat(); } catch (err) { document.getElementById('register-error').textContent = '用户名已存在或服务器错误。'; } };
+            const handleLogout = () => { /* ... 此处代码无变化 ... */ localStorage.clear(); if(state.socket) state.socket.disconnect(); state = { token: null, user: null, socket: null, friends: [], onlineUsers: [], friendRequests: [], currentChat: null, messages: [] }; showView('login'); chatView.classList.remove('mobile-chat-active'); };
+            const connectSocket = () => { /* ... 此处代码无变化 ... */ if (state.socket) state.socket.disconnect(); state.socket = io(API_BASE_URL); state.socket.on('connect', () => state.socket.emit('go-online', state.user.id)); state.socket.on('online-users-list', (users) => { state.onlineUsers = users; renderFriendList(); }); state.socket.on('receive-message', (message) => { if (state.currentChat && message.sender === state.currentChat._id) { state.messages.push(message); renderMessages(); state.socket.emit('message-read', { messageId: message._id }); } }); state.socket.on('message-status-update', ({ messageId, status }) => { const msg = state.messages.find(m => m._id === messageId); if (msg) { msg.status = status; renderMessages(); } }); };
+            const fetchData = async () => { /* ... 此处代码无变化 ... */ try { const [friendsRes, requestsRes] = await Promise.all([api.get('/api/users/friends'), api.get('/api/users/friend-requests')]); state.friends = friendsRes.data; state.friendRequests = requestsRes.data; renderFriendList(); renderFriendRequests(); } catch (error) { if (error.response?.status === 401) handleLogout(); } };
+            const selectChat = async (friend) => { /* ... 此处代码无变化 ... */ state.currentChat = friend; renderFriendList(); document.getElementById('chat-placeholder').style.display = 'none'; document.getElementById('chat-window-content').style.display = 'flex'; document.querySelector('#chat-header h3').textContent = friend.username; if (window.innerWidth <= 768) { chatView.classList.add('mobile-chat-active'); } try { const res = await api.get(`/api/users/chat-history/${friend._id}`); state.messages = res.data; renderMessages(); } catch (error) { console.error('获取聊天记录失败', error); } };
+            
+            // --- 事件监听器 (最后增加Service Worker注册) ---
+            loginForm.addEventListener('submit', (e) => { e.preventDefault(); handleLogin(document.getElementById('login-username').value, document.getElementById('login-password').value); });
+            registerForm.addEventListener('submit', (e) => { e.preventDefault(); handleRegister(document.getElementById('register-username').value, document.getElementById('register-password').value); });
+            document.getElementById('show-register').onclick = () => showView('register');
+            document.getElementById('show-login').onclick = () => showView('login');
+            document.getElementById('logout-button').onclick = handleLogout;
+            document.getElementById('back-to-sidebar-button').onclick = () => { chatView.classList.remove('mobile-chat-active');};
+            document.getElementById('search-form').addEventListener('submit', async (e) => { e.preventDefault(); const searchTerm = document.getElementById('search-input').value; if (!searchTerm) return; try { const res = await api.get(`/api/users/search?q=${searchTerm}`); renderSearchResults(res.data); } catch (error) { console.error(error); }});
+            document.getElementById('search-results').addEventListener('click', async (e) => { if(e.target.classList.contains('add')) { const recipientId = e.target.dataset.id; try { await api.post('/api/users/friend-request', { recipientId }); alert('好友请求已发送'); document.getElementById('search-results').innerHTML = ''; } catch (err) { alert(err.response?.data?.message || '发送失败'); }}});
+            document.getElementById('friend-requests').addEventListener('click', async (e) => { if(e.target.matches('button')) { const senderId = e.target.dataset.id; const accept = e.target.classList.contains('accept'); try { await api.post('/api/users/friend-request/respond', { senderId, accept }); await fetchData(); } catch (err) { alert(err.response?.data?.message || '操作失败'); }}});
+            document.getElementById('message-form').addEventListener('submit', (e) => { e.preventDefault(); const messageInput = document.getElementById('message-input'); const content = messageInput.value; if (!content || !state.currentChat) return; const messageData = { senderId: state.user.id, receiverId: state.currentChat._id, content: content }; state.socket.emit('private-message', messageData); state.messages.push({ ...messageData, _id: Date.now().toString(), sender: state.user.id, status: 'sending...' }); renderMessages(); messageInput.value = '';});
+
+            // --- 修改：初始化时注册Service Worker ---
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./service-worker.js')
+                        .then(registration => console.log('ServiceWorker 注册成功: ', registration.scope))
+                        .catch(error => console.log('ServiceWorker 注册失败: ', error));
+                });
+            }
+
+            // --- 应用启动 ---
+            if (state.token && state.user) {
+                initializeChat();
+            } else {
+                showView('login');
+            }
+        });
+    </script>
+</body>
+</html>            const installButton = document.getElementById('install-pwa-button');
 
             window.addEventListener('beforeinstallprompt', (e) => {
                 // 阻止Chrome 67及更早版本自动显示安装提示
                 e.preventDefault();
                 // 存储事件，以便稍后触发
-                deferredPrompt = e;
-                // 显示我们自定义的安装按钮
-                installButton.style.display = 'block';
-                console.log('`beforeinstallprompt` 事件已触发，安装按钮已显示。');
-            });
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaoChat</title>
 
-            installButton.addEventListener('click', async () => {
-                // 隐藏我们的自定义按钮
-                installButton.style.display = 'none';
-                // 显示安装提示
-                deferredPrompt.prompt();
-                // 等待用户的响应
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`用户对安装提示的响应: ${outcome}`);
-                // 我们只能使用一次提示，所以清空它
-                deferredPrompt = null;
-            });
+    <!-- PWA 核心标签 (保持不变) -->
+    <meta name="theme-color" content="#392d5a"/>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
 
-            window.addEventListener('appinstalled', () => {
-                // 隐藏安装按钮，因为应用已经安装了
-                installButton.style.display = 'none';
-                deferredPrompt = null;
-                console.log('PWA 已成功安装！');
-            });
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    
+    <style>
+        /* CSS样式代码与上一版完全相同，这里省略以保持简洁。*/
+        /* 请确保您使用的是上一版响应式设计的完整CSS。 */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+        :root {--primary-color: rgba(140, 69, 252, 0.7);--primary-hover: rgba(140, 69, 252, 0.9);--dark-glass: rgba(35, 35, 45, 0.65);--light-glass: rgba(255, 255, 255, 0.1);--border-color: rgba(255, 255, 255, 0.125);--text-color: #f0f0f0;--placeholder-color: rgba(255, 255, 255, 0.6);}
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {font-family: 'Poppins', sans-serif;height: 100vh;width: 100vw;overflow: hidden;color: var(--text-color);background: linear-gradient(145deg, #1c2039 0%, #392d5a 50%, #683a54 100%);background-attachment: fixed;display: flex;justify-content: center;align-items: center;}
+        .glass-container {background: var(--dark-glass);backdrop-filter: blur(12px) saturate(180%);-webkit-backdrop-filter: blur(12px) saturate(180%);border-radius: 20px;border: 1px solid var(--border-color);box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);padding: 30px;}
+        .auth-view {width: 380px;display: none;flex-direction: column;gap: 20px;}
+        .auth-view h2 { text-align: center; font-weight: 300; letter-spacing: 2px; margin-bottom: 10px; }
+        .input-group input {width: 100%;background: var(--light-glass);border: 1px solid var(--border-color);border-radius: 8px;padding: 12px;color: var(--text-color);font-size: 16px;outline: none;transition: all 0.2s;}
+        .input-group input::placeholder { color: var(--placeholder-color); }
+        .input-group input:focus { border-color: rgba(255, 255, 255, 0.5); box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); }
+        .glass-button {background: var(--primary-color);color: #fff;border: none;border-radius: 8px;padding: 12px;font-size: 18px;cursor: pointer;transition: all 0.3s ease;font-weight: 600;}
+        .glass-button:hover { background: var(--primary-hover); box-shadow: 0 0 20px rgba(140, 69, 252, 0.4); }
+        .form-link { color: #ccc; text-decoration: none; text-align: center; margin-top: 10px; cursor: pointer; transition: color 0.2s; }
+        .form-link:hover { color: #fff; }
+        .error-message { color: #ff8a8a; text-align: center; min-height: 20px; }
+        #chat-view {display: none;width: 90vw;height: 90vh;max-width: 1400px;padding: 0;flex-direction: row;}
+        .sidebar {width: 30%;min-width: 320px;height: 100%;display: flex;flex-direction: column;padding: 20px;border-right: 1px solid var(--border-color);}
+        .main-chat {width: 70%;height: 100%;display: flex;flex-direction: column;}
+        .sidebar-section { padding: 15px 0; border-bottom: 1px solid var(--border-color); }
+        .sidebar-section:last-child { border-bottom: none; }
+        .sidebar-section h4 { margin-bottom: 10px; font-weight: 400; color: #ccc; }
+        .user-info .username { font-size: 1.2em; margin-bottom: 15px; }
+        .friend-list { flex-grow: 1; overflow-y: auto; }
+        .friend-item, .request-item, .search-item {display: flex; justify-content: space-between; align-items: center;padding: 12px 10px; border-radius: 8px; cursor: pointer; transition: background 0.2s;}
+        .friend-item:hover { background: var(--light-glass); }
+        .friend-item.active { background: rgba(140, 69, 252, 0.3); }
+        .friend-name { display: flex; align-items: center; }
+        .status-dot { height: 10px; width: 10px; border-radius: 50%; margin-right: 10px; background: #9e9e9e; }
+        .status-dot.online { background: #4caf50; }
+        .action-buttons button {background: none; border: 1px solid var(--border-color); color: #fff;width: 30px; height: 30px; border-radius: 50%; cursor: pointer;margin-left: 5px; transition: background 0.2s;}
+        .action-buttons button:hover { background: var(--light-glass); }
+        .action-buttons button.accept:hover { background: #4caf50; }
+        .action-buttons button.reject:hover { background: #f44336; }
+        .chat-header {padding: 15px 20px; text-align: center;display: flex; align-items: center; justify-content: center; position: relative;border-bottom: 1px solid var(--border-color);}
+        #back-to-sidebar-button {display: none;position: absolute;left: 15px;font-size: 1.5em;background: none;border: none;color: #fff;cursor: pointer;}
+        .chat-messages {flex-grow: 1; padding: 20px; overflow-y: auto;display: flex; flex-direction: column; gap: 15px;}
+        .message-bubble { padding: 10px 15px; border-radius: 18px; max-width: 65%; word-wrap: break-word; }
+        .message-bubble.sent { background: var(--primary-color); align-self: flex-end; border-bottom-right-radius: 4px; }
+        .message-bubble.received { background: #3e404d; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .message-status { font-size: 0.7em; text-align: right; color: #ccc; align-self: flex-end; margin: 2px 5px 0 0; }
+        .chat-input-area { padding: 20px; border-top: 1px solid var(--border-color); }
+        .chat-input-area form { display: flex; gap: 10px; }
+        .chat-input-area input { flex-grow: 1; }
+        .chat-placeholder { display: flex; justify-content: center; align-items: center; height: 100%; font-size: 1.5em; color: #666; text-align: center; }
+        @media (max-width: 768px) {.auth-view { width: 90vw; }#chat-view {position: relative;overflow: hidden;flex-direction: column;width: 100vw;height: 100vh;border-radius: 0;}.sidebar, .main-chat {width: 100%;height: 100%;position: absolute;top: 0;left: 0;transition: transform 0.35s ease-in-out;border-radius: 0;border-right: none;}.sidebar { transform: translateX(0); z-index: 10; }.main-chat { transform: translateX(100%); z-index: 20; }#chat-view.mobile-chat-active .sidebar { transform: translateX(-100%); }#chat-view.mobile-chat-active .main-chat { transform: translateX(0); }#back-to-sidebar-button { display: block; }.chat-header h3 { margin: 0 auto; }.message-bubble { max-width: 80%; }}
+    </style>
+</head>
+<body>
+    <!-- HTML结构与上一版完全相同 -->
+    <div id="login-view" class="glass-container auth-view"><h2>登录 MaoChat</h2><div id="login-error" class="error-message"></div><form id="login-form"><div class="input-group"><input type="text" id="login-username" placeholder="用户名" required></div><div class="input-group"><input type="password" id="login-password" placeholder="密码" required></div><button type="submit" class="glass-button">登 录</button></form><a id="show-register" class="form-link">还没有账户？去注册</a></div><div id="register-view" class="glass-container auth-view"><h2>创建新账户</h2><div id="register-error" class="error-message"></div><form id="register-form"><div class="input-group"><input type="text" id="register-username" placeholder="用户名" required></div><div class="input-group"><input type="password" id="register-password" placeholder="密码 (至少6位)" required></div><button type="submit" class="glass-button">注 册</button></form><a id="show-login" class="form-link">已经有账户了？去登录</a></div><div id="chat-view" class="glass-container"><aside class="sidebar"><section class="sidebar-section user-info"><h3 class="username" id="current-username">你好, User</h3><button id="logout-button" class="glass-button" style="background: rgba(244, 67, 54, 0.6);">退出登录</button></section><section class="sidebar-section"><h4>添加好友</h4><form id="search-form" style="display: flex; gap: 5px;"><input type="text" id="search-input" placeholder="搜索用户名..." style="flex-grow:1;"><button type="submit" class="glass-button" style="padding: 10px 15px;">🔍</button></form><div id="search-results"></div></section><section class="sidebar-section"><h4>好友请求</h4><div id="friend-requests"></div></section><section class="sidebar-section friend-list"><h4>好友列表</h4><div id="friends-list-container"></div></section></aside><main id="main-chat" class="main-chat"><div id="chat-placeholder" class="chat-placeholder"><p>选择一个好友<br>开始聊天吧！</p></div><div id="chat-window-content" style="display: none; height: 100%; flex-direction: column;"><header id="chat-header" class="chat-header"><button id="back-to-sidebar-button"><</button><h3>Friend Name</h3></header><div id="chat-messages" class="chat-messages"></div><div class="chat-input-area"><form id="message-form"><input type="text" id="message-input" placeholder="输入消息..." autocomplete="off"><button type="submit" class="glass-button">发送</button></form></div></div></main></div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
 
-            // --- 其他所有JS代码保持不变 ---
-            const API_BASE_URL = 'https://www.maochat.dpdns.org';let state = { token: localStorage.getItem('token'), user: JSON.parse(localStorage.getItem('user')), socket: null, friends: [], onlineUsers: [], friendRequests: [], currentChat: null, messages: [] };const views = { login: document.getElementById('login-view'), register: document.getElementById('register-view'), chat: document.getElementById('chat-view') };const loginForm = document.getElementById('login-form'), registerForm = document.getElementById('register-form'), chatView = document.getElementById('chat-view');const showView = (viewName) => { Object.values(views).forEach(v => v.style.display = 'none'); views[viewName].style.display = 'flex'; };const api = axios.create({ baseURL: API_BASE_URL, headers: { 'Content-Type': 'application/json' } });api.interceptors.request.use(config => { if (state.token) config.headers['Authorization'] = `Bearer ${state.token}`; return config; });function urlBase64ToUint8Array(base64String) {const padding = '='.repeat((4 - base64String.length % 4) % 4);const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');const rawData = window.atob(base64);const outputArray = new Uint8Array(rawData.length);for (let i = 0; i < rawData.length; ++i) {outputArray[i] = rawData.charCodeAt(i);}return outputArray;}
-            const subscribeToPushNotifications = async () => {try {const registration = await navigator.serviceWorker.ready;let subscription = await registration.pushManager.getSubscription();if (subscription) {console.log('用户已经订阅。');return;}const response = await api.get('/api/users/vapid-public-key');const vapidPublicKey = response.data;if (!vapidPublicKey) {console.error('未能从服务器获取VAPID公钥。');return;}const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);subscription = await registration.pushManager.subscribe({userVisibleOnly: true,applicationServerKey: convertedVapidKey});await api.post('/api/users/save-subscription', subscription);console.log('推送通知订阅成功并已发送到后端。');} catch (error) {console.error('订阅推送通知失败:', error);}};
-            const initializeChat = async () => {showView('chat');document.getElementById('current-username').textContent = `你好, ${state.user.username}`;connectSocket();await fetchData();if ('serviceWorker' in navigator && 'PushManager' in window) {Notification.requestPermission().then(permission => {if (permission === 'granted') {console.log('通知权限已获取，开始订阅...');subscribeToPushNotifications();}});}};
-            const renderFriendList = () => { const container = document.getElementById('friends-list-container'); container.innerHTML = ''; state.friends.forEach(friend => { const isOnline = state.onlineUsers.includes(friend._id), isActive = state.currentChat?._id === friend._id; const item = document.createElement('div'); item.className = `friend-item ${isActive ? 'active' : ''}`; item.innerHTML = `<div class="friend-name"><span class="status-dot ${isOnline ? 'online' : ''}"></span><span>${friend.username}</span></div>`; item.onclick = () => selectChat(friend); container.appendChild(item); }); };const renderFriendRequests = () => { const container = document.getElementById('friend-requests'); container.innerHTML = ''; state.friendRequests.forEach(req => { const item = document.createElement('div'); item.className = 'request-item'; item.innerHTML = `<span>${req.username}</span><div class="action-buttons"><button class="accept" data-id="${req.userId}">✓</button><button class="reject" data-id="${req.userId}">×</button></div>`; container.appendChild(item); }); };const renderSearchResults = (results) => { const container = document.getElementById('search-results'); container.innerHTML = '<h4>搜索结果</h4>'; results.forEach(u => { const item = document.createElement('div'); item.className = 'search-item'; item.innerHTML = `<span>${u.username}</span><div class="action-buttons"><button class="add" data-id="${u._id}">+</button></div>`; container.appendChild(item); }); };const renderMessages = () => { const container = document.getElementById('chat-messages'); container.innerHTML = ''; state.messages.forEach(msg => { const isSent = msg.sender === state.user.id; const bubble = document.createElement('div'); bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`; bubble.textContent = msg.content; container.appendChild(bubble); if (isSent) { const statusDiv = document.createElement('div'); statusDiv.className = 'message-status'; statusDiv.textContent = msg.status || 'sent'; container.appendChild(statusDiv); } }); container.scrollTop = container.scrollHeight; };const handleLogin = async (username, password) => { try { const res = await api.post('/api/users/login', { username, password }); state.token = res.data.token; state.user = { id: res.data._id, username: res.data.username }; localStorage.setItem('token', state.token); localStorage.setItem('user', JSON.stringify(state.user)); await initializeChat(); } catch (err) { document.getElementById('login-error').textContent = '用户名或密码错误。'; } };const handleRegister = async (username, password) => { if (password.length < 6) { document.getElementById('register-error').textContent = '密码至少需要6位。'; return; } try { const res = await api.post('/api/users/register', { username, password }); state.token = res.data.token; state.user = { id: res.data._id, username: res.data.username }; localStorage.setItem('token', state.token); localStorage.setItem('user', JSON.stringify(state.user)); await initializeChat(); } catch (err) { document.getElementById('register-error').textContent = '用户名已存在或服务器错误。'; } };const handleLogout = () => { localStorage.clear(); if(state.socket) state.socket.disconnect(); state = { token: null, user: null, socket: null, friends: [], onlineUsers: [], friendRequests: [], currentChat: null, messages: [] }; showView('login'); chatView.classList.remove('mobile-chat-active'); };const connectSocket = () => { if (state.socket) state.socket.disconnect(); state.socket = io(API_BASE_URL); state.socket.on('connect', () => state.socket.emit('go-online', state.user.id)); state.socket.on('online-users-list', (users) => { state.onlineUsers = users; renderFriendList(); }); state.socket.on('receive-message', (message) => { if (state.currentChat && message.sender === state.currentChat._id) { state.messages.push(message); renderMessages(); state.socket.emit('message-read', { messageId: message._id }); } }); state.socket.on('message-status-update', ({ messageId, status }) => { const msg = state.messages.find(m => m._id === messageId); if (msg) { msg.status = status; renderMessages(); } }); };const fetchData = async () => { try { const [friendsRes, requestsRes] = await Promise.all([api.get('/api/users/friends'), api.get('/api/users/friend-requests')]); state.friends = friendsRes.data; state.friendRequests = requestsRes.data; renderFriendList(); renderFriendRequests(); } catch (error) { if (error.response?.status === 401) handleLogout(); } };const selectChat = async (friend) => { state.currentChat = friend; renderFriendList(); document.getElementById('chat-placeholder').style.display = 'none'; document.getElementById('chat-window-content').style.display = 'flex'; document.querySelector('#chat-header h3').textContent = friend.username; if (window.innerWidth <= 768) { chatView.classList.add('mobile-chat-active'); } try { const res = await api.get(`/api/users/chat-history/${friend._id}`); state.messages = res.data; renderMessages(); } catch (error) { console.error('获取聊天记录失败', error); } };
-            loginForm.addEventListener('submit', (e) => { e.preventDefault(); handleLogin(document.getElementById('login-username').value, document.getElementById('login-password').value); });registerForm.addEventListener('submit', (e) => { e.preventDefault(); handleRegister(document.getElementById('register-username').value, document.getElementById('register-password').value); });document.getElementById('show-register').onclick = () => showView('register');document.getElementById('show-login').onclick = () => showView('login');document.getElementById('logout-button').onclick = handleLogout;document.getElementById('back-to-sidebar-button').onclick = () => { chatView.classList.remove('mobile-chat-active');};document.getElementById('search-form').addEventListener('submit', async (e) => { e.preventDefault(); const searchTerm = document.getElementById('search-input').value; if (!searchTerm) return; try { const res = await api.get(`/api/users/search?q=${searchTerm}`); renderSearchResults(res.data); } catch (error) { console.error(error); }});document.getElementById('search-results').addEventListener('click', async (e) => { if(e.target.classList.contains('add')) { const recipientId = e.target.dataset.id; try { await api.post('/api/users/friend-request', { recipientId }); alert('好友请求已发送'); document.getElementById('search-results').innerHTML = ''; } catch (err) { alert(err.response?.data?.message || '发送失败'); }}});document.getElementById('friend-requests').addEventListener('click', async (e) => { if(e.target.matches('button')) { const senderId = e.target.dataset.id; const accept = e.target.classList.contains('accept'); try { await api.post('/api/users/friend-request/respond', { senderId, accept }); await fetchData(); } catch (err) { alert(err.response?.data?.message || '操作失败'); }}});document.getElementById('message-form').addEventListener('submit', (e) => { e.preventDefault(); const messageInput = document.getElementById('message-input'); const content = messageInput.value; if (!content || !state.currentChat) return; const messageData = { senderId: state.user.id, receiverId: state.currentChat._id, content: content }; state.socket.emit('private-message', messageData); state.messages.push({ ...messageData, _id: Date.now().toString(), sender: state.user.id, status: 'sending...' }); renderMessages(); messageInput.value = '';});
-            if ('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('./service-worker.js').then(registration => console.log('ServiceWorker 注册成功: ', registration.scope)).catch(error => console.log('ServiceWorker 注册失败: ', error));});}
-            if (state.token && state.user) {initializeChat();} else {showView('login');}
-        });
-    </script>
-</body>
-</html>                    }
+            const API_BASE_URL = 'https://www.maochat.dpdns.org';
+            let state = { token: localStorage.getItem('token'), user: JSON.parse(localStorage.getItem('user')), socket: null, friends: [], onlineUsers: [], friendRequests: [], currentChat: null, messages: [] };
+            const views = { login: document.getElementById('login-view'), register: document.getElementById('register-view'), chat: document.getElementById('chat-view') };
+            const loginForm = document.getElementById('login-form'), registerForm = document.getElementById('register-form'), chatView = document.getElementById('chat-view');
+            const showView = (viewName) => { Object.values(views).forEach(v => v.style.display = 'none'); views[viewName].style.display = 'flex'; };
+            const api = axios.create({ baseURL: API_BASE_URL, headers: { 'Content-Type': 'application/json' } });
+            api.interceptors.request.use(config => { if (state.token) config.headers['Authorization'] = `Bearer ${state.token}`; return config; });
+
+            // --- 新增工具函数：转换VAPID公钥 ---
+            function urlBase64ToUint8Array(base64String) {
+                const padding = '='.repeat((4 - base64String.length % 4) % 4);
+                const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+                const rawData = window.atob(base64);
+                const outputArray = new Uint8Array(rawData.length);
+                for (let i = 0; i < rawData.length; ++i) {
+                    outputArray[i] = rawData.charCodeAt(i);
+                }
+                return outputArray;
+            }
+
+            // --- 新增：订阅推送通知的核心函数 ---
+            const subscribeToPushNotifications = async () => {
+                try {
+                    const registration = await navigator.serviceWorker.ready;
+                    let subscription = await registration.pushManager.getSubscription();
+                    
+                    if (subscription) {
+                        console.log('用户已经订阅。');
+                        return;
+                    }
+                    
+                    const response = await api.get('/api/users/vapid-public-key');
+                    const vapidPublicKey = response.data;
+                    
+                    if (!vapidPublicKey) {
+                        console.error('未能从服务器获取VAPID公钥。');
+                        return;
+                    }
                     
                     const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
                     
