@@ -8,16 +8,13 @@
     <link rel="stylesheet" href="css/themes.css">
     <link rel="stylesheet" href="css/animations.css">
 </head>
-<body class="theme-default"> <!-- 默认主题 -->
+<body class="theme-dark"> <!-- Defaulting to dark theme as it looks great with glass -->
 
-    <!-- 用于高斯模糊的背景图 -->
     <div class="background-image"></div>
 
-    <!-- 应用主容器 -->
     <div id="app-container">
-
-        <!-- 登录/注册界面 -->
-        <div id="auth-container" class="glass-pane fade-in">
+        <!-- Login/Register View -->
+        <div id="auth-container" class="glass-pane">
             <h2>欢迎来到 MaoChat</h2>
             <div id="auth-form">
                 <input type="text" id="username-input" placeholder="用户名" required>
@@ -30,43 +27,64 @@
             </div>
         </div>
 
-        <!-- 聊天主界面 (默认隐藏) -->
+        <!-- Main Chat View (Responsive) -->
         <div id="chat-container" class="glass-pane hidden">
-            <div class="sidebar">
-                <h3>在线用户</h3>
-                <ul id="user-list">
-                    <!-- 用户列表将由JS动态填充 -->
-                </ul>
-                <div class="theme-switcher">
-                    <label for="theme-select">主题:</label>
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h3 id="current-username">你好, User</h3>
+                    <button id="logout-btn">登出</button>
+                </div>
+                <div class="sidebar-content">
+                    <div class="sidebar-section">
+                        <h4>添加好友</h4>
+                        <form id="search-form">
+                            <input type="text" id="search-input" placeholder="搜索用户名..." required>
+                            <button type="submit">🔍</button>
+                        </form>
+                        <div id="search-results-container" class="results-container"></div>
+                    </div>
+                    <div class="sidebar-section">
+                        <h4>好友请求</h4>
+                        <div id="friend-requests-container" class="results-container"></div>
+                    </div>
+                    <div class="sidebar-section scrollable-list">
+                        <h4>好友列表</h4>
+                        <div id="friends-list-container"></div>
+                    </div>
+                </div>
+                 <div class="theme-switcher">
                     <select id="theme-select">
-                        <option value="theme-default">默认亮色</option>
                         <option value="theme-dark">深邃暗黑</option>
+                        <option value="theme-default">默认亮色</option>
                         <option value="theme-forest">森系绿意</option>
                         <option value="theme-synthwave">赛博朋克</option>
                     </select>
                 </div>
-            </div>
-            <div class="chat-area">
-                <div class="chat-header">
-                    <h3 id="current-chat-name">聊天室大厅</h3>
-                    <button id="logout-btn">退出登录</button>
-                </div>
-                <div id="message-list">
-                    <!-- 消息将由JS动态填充 -->
-                </div>
-                <div class="message-input-area">
-                    <input type="text" id="message-input" placeholder="输入消息...">
-                    <button id="send-btn">发送</button>
-                </div>
-            </div>
-        </div>
+            </aside>
 
+            <!-- Right Chat Area -->
+            <main class="main-chat">
+                <div id="chat-placeholder" class="chat-placeholder">
+                    <h2>选择一位好友开始聊天吧</h2>
+                    <p>MaoChat 猫聊</p>
+                </div>
+                <div id="chat-window" class="hidden">
+                    <div class="chat-header">
+                        <button id="back-to-sidebar-btn">←</button>
+                        <h3 id="chat-with-username"></h3>
+                    </div>
+                    <div id="message-list"></div>
+                    <form id="message-form" class="message-input-area">
+                        <input type="text" id="message-input" placeholder="输入消息..." autocomplete="off">
+                        <button id="send-btn" type="submit">发送</button>
+                    </form>
+                </div>
+            </main>
+        </div>
     </div>
     
-    <!-- 引入Socket.IO客户端库 -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-    <!-- 引入我们的模块化JS -->
     <script src="js/main.js" type="module"></script>
 </body>
 </html>
